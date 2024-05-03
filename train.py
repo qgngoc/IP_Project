@@ -2,14 +2,14 @@ import time
 
 import cv2
 import numpy as np
-import torchsummary as summary
+# import torchsummary as summary
 import torch
 # import torchvision.models.detection.fas
 from torchvision import models
 from torchvision.models.detection import fasterrcnn_resnet50_fpn, retinanet_resnet50_fpn, fasterrcnn_mobilenet_v3_large_fpn
 from torchvision.models.detection.retinanet import RetinaNetHead
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from tqdm import tqdm
+# from tqdm import tqdm
 
 from DataLoader import DataLoader
 from config import BASE_PATH, MODEL_PATH
@@ -77,7 +77,7 @@ num_classes = 2
 
 def train():
     # model = fasterrcnn_resnet50_fpn(weights='DEFAULT', trainable_backbone_layers=2)
-    model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=3)
+    model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=4)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
@@ -137,7 +137,7 @@ def train():
 # train()
 
 def eval_one_img(file_path):
-    finetuned_model = fasterrcnn_resnet50_fpn(weights='DEFAULT', trainable_backbone_layers=2)
+    finetuned_model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=4)
     in_features = finetuned_model.roi_heads.box_predictor.cls_score.in_features
     finetuned_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     # PATH = './input/Model/' + args.DATA_FILE + '/' + ModelSelect + '_finetune_model_embeding.pkl'

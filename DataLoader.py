@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import torch
 from torch import tensor
-from torchvision.tv_tensors import BoundingBoxes, BoundingBoxFormat
+# from torchvision.tv_tensors import BoundingBoxes, BoundingBoxFormat
 
 class DataLoader:
 
