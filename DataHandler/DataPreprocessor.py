@@ -1,5 +1,4 @@
 import cv2
-
 class DataPreprocessor:
     def __init__(self):
         pass
@@ -18,13 +17,14 @@ class DataPreprocessor:
         return RGB_edges
 
     @staticmethod
-    def data_augmentation(dataset):
+    def data_augmentation(data):
         """
-        :param dataset:
-        :return: augmented dataset with same format
+        :param data: (image, label)
+        :return: list of augmented data with same format
         """
 
-        return
+        augmented_data = [data]
+        return augmented_data
 
     # @staticmethod
     # def preprocess(image):

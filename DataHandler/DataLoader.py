@@ -21,7 +21,7 @@ class DataLoader:
             img = cv2.imread(imgfolderpath + imgFilePath)
             # image_tensor = torch.from_numpy(img).int()
             img = DataPreprocessor.edge_filtering(img)
-            image_tensor = torch.from_numpy(img / 255.0).permute(2, 0, 1).float()
+            image_tensor = self.format_img(img)
             imgs[imgFilePath[:-4]] = image_tensor
         return imgs
 
@@ -43,12 +43,34 @@ class DataLoader:
                 datay[labelfile[:-4]] = (1, torch.from_numpy(boxes))
         return datay
 
+    @staticmethod
+    def reformat_img(img):
+        """
+        :param img: processed img (tensor)
+        :return: unprocessed img (numpy)
+        """
+        image = img * 255
+        image = np.array(image.permute(1, 2, 0), dtype='uint8')
+        return image
+
+    @staticmethod
+    def format_img(img):
+        """
+        :param img: unprocessed img (numpy )
+        :return: processed img (tensor)
+        """
+        image_tensor = torch.from_numpy(img / 255.0).permute(2, 0, 1).float()
+        return image_tensor
+
     def init_dataset(self):
         dataset = []
         for keyx, valuex in self.datax.items():
             valuey = self.datay[keyx]
             processed_valuey = self.process_datay(valuey, valuex)
-            dataset.append((valuex,processed_valuey))
+            reformated_valuex = self.reformat_img(valuex)
+            data = (reformated_valuex, processed_valuey)
+            augmented_data = DataPreprocessor.data_augmentation(data)
+            dataset += augmented_data
         return dataset
 
     def process_datay(self, valuey, valuex):
