@@ -10,6 +10,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 # from tqdm import tqdm
 
 from DataHandler.DataLoader import DataLoader
+from DataHandler.DataPreprocessor import DataPreprocessor
 from config import BASE_PATH, MODEL_PATH, split_batch
 
 imgfolderpath = BASE_PATH + '/images/train/'
@@ -94,7 +95,7 @@ class Trainer:
         # print(finetuned_model)
         finetuned_model.eval()
         image = cv2.imread(file_path)
-        image = DataLoader.preprocess(image)
+        image = DataPreprocessor.edge_filtering(image)
         image_tensor = torch.from_numpy(image / 255.0).permute(2, 0, 1).float()
         time1 = time.time()
         with torch.no_grad():
