@@ -19,7 +19,7 @@ class DataPreprocessor:
     @staticmethod
     def data_augmentation(data):
         """
-        :param data: (image, label)
+        :param data: (image, label).
         :return: list of augmented data with same format
         """
 

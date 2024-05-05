@@ -36,7 +36,7 @@ class DataLoader:
                     stry = line.split()
                     # label, x_center, y_center, width, height = line.split()
                     y_np = np.array(stry[1:], dtype=np.float64)
-                    per_line = torch.from_numpy(y_np)
+                    per_line = y_np
                     # per_line = list
                     boxes.append(per_line)
                 boxes = np.array(boxes, dtype=np.float64)
@@ -69,8 +69,10 @@ class DataLoader:
             processed_valuey = self.process_datay(valuey, valuex)
             reformated_valuex = self.reformat_img(valuex)
             data = (reformated_valuex, processed_valuey)
-            augmented_data = DataPreprocessor.data_augmentation(data)
-            dataset += augmented_data
+            augmented_dataset = DataPreprocessor.data_augmentation(data)
+            for img, label in augmented_dataset:
+                img = self.format_img(img)
+                dataset.append((img, label))
         return dataset
 
     def process_datay(self, valuey, valuex):
