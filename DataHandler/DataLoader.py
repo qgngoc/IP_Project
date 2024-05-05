@@ -12,19 +12,29 @@ class DataLoader:
         self.datax = self.init_datax(imgfolderpath)
         self.datay = self.init_datay(labelfolderpath)
 
-
     def init_datax(self, imgfolderpath):
         listImgFilesPath = os.listdir(imgfolderpath)
         imgs = {}
         for imgFilePath in listImgFilesPath:
             img = cv2.imread(imgfolderpath + imgFilePath)
             # image_tensor = torch.from_numpy(img).int()
+            img = self.preprocess(img)
             image_tensor = torch.from_numpy(img / 255.0).permute(2, 0, 1).float()
             imgs[imgFilePath[:-4]] = image_tensor
         return imgs
 
-    def preprocess(self):
-        pass
+    @staticmethod
+    def preprocess(image):
+        """
+        :param image: 3 channel RGB image
+        :return: 3 channel RGB image
+        """
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        thresholded = cv2.threshold(gray, 130, 255, cv2.THRESH_BINARY_INV)[1]
+        edges = cv2.Canny(thresholded, 50, 150, apertureSize=3)
+        RGB_edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+
+        return RGB_edges
 
     def init_datay(self, labelfolderpath):
         listLabelFile = os.listdir(labelfolderpath)

@@ -3,6 +3,7 @@ from torchvision.models.detection import fasterrcnn_mobilenet_v3_large_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from config import MODEL_PATH
+from train.Trainer import Trainer
 
 label_test = \
 """
@@ -209,16 +210,16 @@ class HanNomOCR:
         """
         self.name = 'HanNomOCR'
         self.noise = noise
-        self.model = self.load_model(model_path)
+        self.trainer = Trainer()
         np.random.seed(1)
 
-    def load_model(self, model_path):
-        finetuned_model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=4)
-        in_features = finetuned_model.roi_heads.box_predictor.cls_score.in_features
-        finetuned_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)
-        finetuned_model.load_state_dict(torch.load(model_path))
-        finetuned_model.eval()
-        return finetuned_model
+    # def load_model(self, model_path):
+    #     finetuned_model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=4)
+    #     in_features = finetuned_model.roi_heads.box_predictor.cls_score.in_features
+    #     finetuned_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)
+    #     finetuned_model.load_state_dict(torch.load(model_path))
+    #     finetuned_model.eval()
+    #     return finetuned_model
 
     def detect_old(self, img):
         base_outputs = read_label(img, label_test)
@@ -236,28 +237,5 @@ class HanNomOCR:
         return np.array(preds)
 
     def detect(self, img):
-        base_outputs = read_label(img, label_test)
-        img_tensor = torch.from_numpy(img / 255.0).permute(2, 0, 1).float()
-        preds = []
-        with torch.no_grad():
-            predictions = self.model([img_tensor])
-            result = predictions[0]
-            # masks = result['masks']
-            scores = result['scores'].tolist()
-            boxes = result['boxes']
-            labels = result['labels'].tolist()
-            boxes = np.asarray(boxes, dtype=int)
-            for i in range(len(boxes)):
-                box = boxes[i]
-                confidence = scores[i]
-                x_start = box[0]
-                y_start = box[1]
-                x_end = box[2]
-                y_end = box[3]
-                width = x_end-x_start
-                height = y_end-y_start
-                x_center = int(x_start + width/2)
-                y_center = int(y_start+height/2)
-                preds += [(confidence, x_center, y_center, width, height)]
-
-        return np.array(preds)
+        # base_outputs = read_label(img, label_test)
+        return self.trainer.evaluate(img)
