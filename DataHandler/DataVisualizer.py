@@ -1,10 +1,13 @@
+import sys
 import os
+parent_dir = os.path.dirname(os.path.realpath(__file__)) + "/../"
+sys.path.append(parent_dir)
 
 import cv2
 import numpy as np
 import torch
 
-import DataHandler.DataLoader
+import DataLoader
 from config import BASE_PATH
 from matplotlib import pyplot as plt
 
@@ -36,10 +39,10 @@ class DataVisualizer:
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    imgfolderpath = '/Users/quangngoc0811/Documents/UETFiles/IP/IP_Project/wb_localization_dataset' + '/images/train/'
-    labelfolderpath = '/Users/quangngoc0811/Documents/UETFiles/IP/IP_Project/wb_localization_dataset' + '/labels/train/'
+    imgfolderpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + 'wb_localization_dataset' + '/images/train/'
+    labelfolderpath = os.path.dirname(os.path.realpath(__file__)) + "/../" + 'wb_localization_dataset' + '/labels/train/'
 
-    dataloader = DataHandler.DataLoader.DataLoader(imgfolderpath, labelfolderpath)
+    dataloader = DataLoader.DataLoader(imgfolderpath, labelfolderpath)
     train_dataset = dataloader.init_dataset()
     data = train_dataset[0]
     DataVisualizer.visualize_data(data=data)
