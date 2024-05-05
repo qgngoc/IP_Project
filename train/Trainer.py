@@ -22,14 +22,20 @@ num_classes = 2
 
 class Trainer:
     def __init__(self, model=DEFAULT_MODEL):
-        self.model = model
+        self.model = self.create_model(model)
         self.dataset = DataLoader(imgfolderpath=imgfolderpath, labelfolderpath=labelfolderpath).init_dataset()
+
+    @staticmethod
+    def create_model(model):
+        in_features = model.roi_heads.box_predictor.cls_score.in_features
+        model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        return model
 
     def train(self):
         # model = fasterrcnn_resnet50_fpn(weights='DEFAULT', trainable_backbone_layers=2)
         model = self.model
-        in_features = model.roi_heads.box_predictor.cls_score.in_features
-        model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        # in_features = model.roi_heads.box_predictor.cls_score.in_features
+        # model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
         # model = retinanet_resnet50_fpn(weights='DEFAULT')
         # # in_features = model.head.classification_head.conv[0].in_channels
@@ -85,8 +91,6 @@ class Trainer:
 
     def eval_one_img(self, file_path):
         finetuned_model = self.model
-        in_features = finetuned_model.roi_heads.box_predictor.cls_score.in_features
-        finetuned_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
         # PATH = './input/Model/' + args.DATA_FILE + '/' + ModelSelect + '_finetune_model_embeding.pkl'
         finetuned_model.load_state_dict(torch.load(MODEL_PATH))
         # summary(finetuned_model, (3, 224, 224))
