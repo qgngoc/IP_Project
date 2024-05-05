@@ -20,15 +20,18 @@ labelfolderpath = BASE_PATH + '/labels/train/'
 DEFAULT_MODEL = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=5)
 num_classes = 2
 
+
 class Trainer:
-    def __init__(self, model=DEFAULT_MODEL):
-        self.model = self.create_model(model)
+    def __init__(self, pretrained_model=DEFAULT_MODEL):
+        self.model = self.create_model(pretrained_model)
         self.dataset = DataLoader(imgfolderpath=imgfolderpath, labelfolderpath=labelfolderpath).init_dataset()
 
     @staticmethod
     def create_model(model):
         in_features = model.roi_heads.box_predictor.cls_score.in_features
         model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        # TODO customizing model backbone
+
         return model
 
     def train(self):
@@ -89,17 +92,15 @@ class Trainer:
 
     # train()
 
-    def eval_one_img(self, file_path):
+    def eval_one_img(self, procesed_image):
         finetuned_model = self.model
-        # PATH = './input/Model/' + args.DATA_FILE + '/' + ModelSelect + '_finetune_model_embeding.pkl'
+
         finetuned_model.load_state_dict(torch.load(MODEL_PATH))
-        # summary(finetuned_model, (3, 224, 224))
-        # print(finetuned_model)
-        # finetuned_model = models.vgg16()
-        # print(finetuned_model)
+
         finetuned_model.eval()
-        image = cv2.imread(file_path)
-        image = DataPreprocessor.edge_filtering(image)
+        image = procesed_image * 255
+        image = np.array(image.permute(1,2,0), dtype='uint8')
+        # edge_filtered_img = DataPreprocessor.edge_filtering(image)
         image_tensor = torch.from_numpy(image / 255.0).permute(2, 0, 1).float()
         time1 = time.time()
         with torch.no_grad():
@@ -123,9 +124,10 @@ class Trainer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def evaluate(self, img):
+    def evaluate(self, img, threshold=0.5):
         # img = cv2.imread(file_path)
         img_tensor = torch.from_numpy(img / 255.0).permute(2, 0, 1).float()
+        self.model.eval()
         preds = []
         with torch.no_grad():
             predictions = self.model([img_tensor])
@@ -138,6 +140,8 @@ class Trainer:
             for i in range(len(boxes)):
                 box = boxes[i]
                 confidence = scores[i]
+                if confidence < threshold:
+                    continue
                 x_start = box[0]
                 y_start = box[1]
                 x_end = box[2]
@@ -150,30 +154,14 @@ class Trainer:
 
         return np.array(preds)
 
-# def eval():
-#     imgfolderpath = BASE_PATH + '/images/val/'
-#     labelfolderpath = BASE_PATH + '/labels/val/'
-#
-#     test_loader = DataLoader(imgfolderpath=imgfolderpath, labelfolderpath=labelfolderpath)
-#     test_dataset = test_loader.init_dataset()
-#
-#     finetuned_model = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=4)
-#     in_features = finetuned_model.roi_heads.box_predictor.cls_score.in_features
-#     finetuned_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-#     # PATH = './input/Model/' + args.DATA_FILE + '/' + ModelSelect + '_finetune_model_embeding.pkl'
-#     finetuned_model.load_state_dict(torch.load(MODEL_PATH))
-#     finetuned_model.eval()
-
-
-# imgfolderpath = BASE_PATH + '/images/val/'
-# labelfolderpath = BASE_PATH + '/labels/val/'
 
 if __name__ == "__main__":
 
     trainer = Trainer()
-    trainer.train()
-    # loader = DataLoader(imgfolderpath=imgfolderpath, labelfolderpath=labelfolderpath)
-    # dataset = loader.init_dataset()
-    # # train()
-    # # eval()
-    trainer.eval_one_img('wb_localization_dataset/images/val/nlvnpf-0137-01-045.jpg')
+    # trainer.train()
+
+    validate_dataset = DataLoader(imgfolderpath=BASE_PATH + '/images/train/', labelfolderpath=BASE_PATH + '/labels/train/').init_dataset()
+    test_data = validate_dataset[4]
+    test_img = test_data[0]
+
+    trainer.eval_one_img(test_img)

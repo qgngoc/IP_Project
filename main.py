@@ -13,6 +13,8 @@ import numpy as np
 from character_detector import HanNomOCR
 from mean_average_precision import MetricBuilder
 
+from config import BASE_PATH
+
 """
 Example ground truth and predict
 
@@ -76,8 +78,8 @@ if __name__ == "__main__":
     # input_folder = sys.argv[1]
     # label_folder = sys.argv[2]
 
-    input_folder = 'examples1/images'
-    label_folder = 'examples1/labels'
+    input_folder = BASE_PATH + '/images/val/'
+    label_folder = BASE_PATH + '/labels/val/'
 
     start_time = time.time()
     detector = HanNomOCR(noise=20)
