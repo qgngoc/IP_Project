@@ -47,3 +47,11 @@ VGG(
     (6): Linear(in_features=4096, out_features=1000, bias=True)
   )
 )"""
+
+
+def split_batch(images, targets, batch_size=10):
+    splitted = []
+    for i in range(0, len(images), batch_size):
+        splitted.append((images[i:i + batch_size], targets[i:i + batch_size]))
+
+    return splitted
