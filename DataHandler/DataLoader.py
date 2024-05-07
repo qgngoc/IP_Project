@@ -67,12 +67,13 @@ class DataLoader:
         for keyx, valuex in self.datax.items():
             valuey = self.datay[keyx]
             processed_valuey = self.process_datay(valuey, valuex)
-            reformated_valuex = self.reformat_img(valuex)
-            data = (reformated_valuex, processed_valuey)
-            augmented_dataset = DataPreprocessor.data_augmentation(data)
-            for img, label in augmented_dataset:
-                img = self.format_img(img)
-                dataset.append((img, label))
+            dataset.append((valuex, processed_valuey))
+            # reformated_valuex = self.reformat_img(valuex)
+            # data = (reformated_valuex, processed_valuey)
+            # augmented_dataset = DataPreprocessor.data_augmentation(data)
+            # for img, label in augmented_dataset:
+            #     img = self.format_img(img)
+            #     dataset.append((img, label))
         return dataset
 
     def process_datay(self, valuey, valuex):
