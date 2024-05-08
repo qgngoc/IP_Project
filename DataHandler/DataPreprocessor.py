@@ -27,16 +27,14 @@ class DataPreprocessor:
         img, label = data
         flipped_img = cv2.flip(img, 1)
         boxes = label[1]
-
+        augmented_data = [data]
         for i in range(0, len(boxes)):
             boxes[i][0] = len(img[0]) - boxes[i][0]
             boxes[i][2] = len(img[0]) - boxes[i][2]
 
         flipped_label = (label[0], boxes)
-        data = (flipped_img, flipped_label)
+        augmented_data.append((flipped_img, flipped_label))
 
-
-        augmented_data = [data]
         return augmented_data
 
     # @staticmethod
