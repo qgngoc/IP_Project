@@ -51,3 +51,14 @@ class DataPreprocessor:
     #     RGB_edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
     #
     #     return RGB_edges
+    @staticmethod
+    def read_image(image):
+        return cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB)
+
+    @staticmethod
+    def apply_ben_preprocessing(image):    
+        return cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0,0), 10), -4, 128)
+
+    @staticmethod
+    def apply_denoising(image):   
+        return cv2.fastNlMeansDenoisingColored(image, None, 20, 20, 7, 21)

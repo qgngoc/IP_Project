@@ -9,7 +9,7 @@ import torch
 
 import DataLoader
 from config import BASE_PATH
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 class DataVisualizer:
     def __init__(self):

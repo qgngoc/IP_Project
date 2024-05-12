@@ -1,5 +1,10 @@
 import time
 
+import sys
+import os
+parent_dir = os.path.dirname(os.path.realpath(__file__)) + "/../"
+sys.path.append(parent_dir)
+
 import cv2
 import numpy as np
 # import torchsummary as summary
@@ -28,10 +33,10 @@ class Trainer:
 
     @staticmethod
     def create_model(model):
-        in_features = model.roi_heads.box_predictor.cls_score.in_features
-        model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        #in_features = model.roi_heads.box_predictor.cls_score.in_features
+        #model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
         # TODO customizing model backbone
-
+        
         return model
 
     def train(self):
@@ -74,7 +79,7 @@ class Trainer:
         # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer,
         #                                                step_size=3,
         #                                                gamma=0.1)
-        num_epoches = 15
+        num_epoches = 6
         i = 1
         splitted_data = split_batch(full_datax, targets, batch_size=10)
         for epoch in range(num_epoches):
@@ -145,7 +150,7 @@ class Trainer:
                 x_start = box[0]
                 y_start = box[1]
                 x_end = box[2]
-                y_end = box[3]
+                y_end = box[3] 
                 width = x_end - x_start
                 height = y_end - y_start
                 x_center = int(x_start + width / 2)
@@ -158,10 +163,11 @@ class Trainer:
 if __name__ == "__main__":
 
     trainer = Trainer()
-    # trainer.train()
+    #trainer.train() 
 
     validate_dataset = DataLoader(imgfolderpath=BASE_PATH + '/images/train/', labelfolderpath=BASE_PATH + '/labels/train/').init_dataset()
     test_data = validate_dataset[4]
     test_img = test_data[0]
 
     trainer.eval_one_img(test_img)
+

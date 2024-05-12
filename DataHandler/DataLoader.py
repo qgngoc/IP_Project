@@ -18,9 +18,12 @@ class DataLoader:
         listImgFilesPath = os.listdir(imgfolderpath)
         imgs = {}
         for imgFilePath in listImgFilesPath:
-            img = cv2.imread(imgfolderpath + imgFilePath)
+            #img = cv2.imread(imgfolderpath + imgFilePath)
             # image_tensor = torch.from_numpy(img).int()
-            img = DataPreprocessor.edge_filtering(img)
+            # img = DataPreprocessor.edge_filtering(img)
+            img = DataPreprocessor.read_image(imgfolderpath + imgFilePath)
+            img = DataPreprocessor.apply_ben_preprocessing(img)
+            img = DataPreprocessor.apply_denoising(img)
             image_tensor = self.format_img(img)
             imgs[imgFilePath[:-4]] = image_tensor
         return imgs
