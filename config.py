@@ -1,5 +1,5 @@
 BASE_PATH = "wb_localization_dataset"
-MODEL_PATH = "yolo_nano_22.4_40.7.pth"       #'finetuned_model.pkl'
+MODEL_PATH = 'finetuned_model.pkl'
 
 """
 VGG(

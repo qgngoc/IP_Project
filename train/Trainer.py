@@ -13,28 +13,31 @@ import torch
 from torchvision.models.detection import fasterrcnn_mobilenet_v3_large_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 # from tqdm import tqdm
-
 from DataHandler.DataLoader import DataLoader
 from DataHandler.DataPreprocessor import DataPreprocessor
 from config import BASE_PATH, MODEL_PATH, split_batch
+from yolo_nano import YoloNano
 
 imgfolderpath = BASE_PATH + '/images/train/'
 labelfolderpath = BASE_PATH + '/labels/train/'
 
-
-DEFAULT_MODEL = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=5)
+#DEFAULT_MODEL = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=5)
+# DEFAULT_MODEL.load_state_dict(torch.load('/home/phong/VScode/IP_Project/yolo_nano_22.4_40.7.pth'))
+model = YoloNano(num_class=2)#torch.load('yolo_nano_0.557.pth', map_location=torch.device('cpu'))
+model.load_state_dict(torch.load('yolo_nano_0.557.pth', map_location=torch.device('cpu')), strict=False)
+#print(model)
 num_classes = 2
 
 
 class Trainer:
-    def __init__(self, pretrained_model=DEFAULT_MODEL):
+    def __init__(self, pretrained_model=model):
         self.model = self.create_model(pretrained_model)
         self.dataset = DataLoader(imgfolderpath=imgfolderpath, labelfolderpath=labelfolderpath).init_dataset()
 
     @staticmethod
     def create_model(model):
-        #in_features = model.roi_heads.box_predictor.cls_score.in_features
-        #model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+        # in_features = model.roi_heads.box_predictor.cls_score.in_features
+        # model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
         # TODO customizing model backbone
         
         return model
@@ -81,7 +84,7 @@ class Trainer:
         #                                                gamma=0.1)
         num_epoches = 6
         i = 1
-        splitted_data = split_batch(full_datax, targets, batch_size=10)
+        splitted_data = split_batch(full_datax, targets, batch_size=5)
         for epoch in range(num_epoches):
             for images, targets in splitted_data:
                 optimizer.zero_grad()
@@ -93,20 +96,23 @@ class Trainer:
                 loss.backward()
                 optimizer.step()
                 # lr_scheduler.step()
-        torch.save(model.state_dict(), MODEL_PATH)
-
+        #torch.save(model.state_dict(), MODEL_PATH)
+        torch.save(model, MODEL_PATH)
     # train()
 
     def eval_one_img(self, procesed_image):
-        finetuned_model = self.model
+        finetuned_model = self.model #torch.load(MODEL_PATH)
 
-        finetuned_model.load_state_dict(torch.load(MODEL_PATH))
+        finetuned_model.load_state_dict(torch.load(MODEL_PATH,map_location=torch.device('cpu')), strict = False)
 
         finetuned_model.eval()
         image = procesed_image * 255
         image = np.array(image.permute(1,2,0), dtype='uint8')
         # edge_filtered_img = DataPreprocessor.edge_filtering(image)
         image_tensor = torch.from_numpy(image / 255.0).permute(2, 0, 1).float()
+        
+        print(image_tensor.shape)
+        
         time1 = time.time()
         with torch.no_grad():
             predictions = finetuned_model([image_tensor])
