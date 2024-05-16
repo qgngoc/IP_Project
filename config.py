@@ -1,6 +1,6 @@
 BASE_PATH = "wb_localization_dataset"
 MODEL_PATH = 'finetuned_model.pkl'
-
+IMAGE_SIZE = (800,800)
 """
 VGG(
   (features): Sequential(

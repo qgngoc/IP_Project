@@ -16,14 +16,17 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from DataHandler.DataLoader import DataLoader
 from DataHandler.DataPreprocessor import DataPreprocessor
 from config import BASE_PATH, MODEL_PATH, split_batch
+
 from yolo_nano import YoloNano
+from utils.utils import *
+from config import IMAGE_SIZE
 
 imgfolderpath = BASE_PATH + '/images/train/'
 labelfolderpath = BASE_PATH + '/labels/train/'
 
 #DEFAULT_MODEL = fasterrcnn_mobilenet_v3_large_fpn(weights='DEFAULT', trainable_backbone_layers=5)
 # DEFAULT_MODEL.load_state_dict(torch.load('/home/phong/VScode/IP_Project/yolo_nano_22.4_40.7.pth'))
-model = YoloNano(num_class=2)#torch.load('yolo_nano_0.557.pth', map_location=torch.device('cpu'))
+model = YoloNano(num_class=2,img_size=800)#torch.load('yolo_nano_0.557.pth', map_location=torch.device('cpu'))
 model.load_state_dict(torch.load('yolo_nano_0.557.pth', map_location=torch.device('cpu')), strict=False)
 #print(model)
 num_classes = 2
@@ -111,15 +114,22 @@ class Trainer:
         # edge_filtered_img = DataPreprocessor.edge_filtering(image)
         image_tensor = torch.from_numpy(image / 255.0).permute(2, 0, 1).float()
         
-        print(image_tensor.shape)
-        
+        print('image_tensor shape= ', image_tensor.shape)
+        image_tensor, _ = pad_to_square(image_tensor, 255) 
+        image_tensor = resize(image_tensor, IMAGE_SIZE)
+        image_tensor =  image_tensor.unsqueeze(0)
+        print('image_tensor shape= ', image_tensor.shape)
+
         time1 = time.time()
         with torch.no_grad():
-            predictions = finetuned_model([image_tensor])
+            predictions = finetuned_model(image_tensor)
 
         print(f'Run time: {time.time()-time1} second(s)')
 
         result = predictions[0]
+        print('predictions = ', predictions)
+        print('predictions.shape = ', predictions.shape)
+        print(result.shape)
         # masks = result['masks']
         scores = result['scores'].tolist()
         boxes = result['boxes']
