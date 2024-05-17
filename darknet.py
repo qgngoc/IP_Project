@@ -397,3 +397,15 @@ class Darknet(nn.Module):
                 conv_layer.weight.data.cpu().numpy().tofile(fp)
 
         fp.close()
+
+# if __name__ == '__main__':
+#     x = torch.randn(1,3,416,416)
+#     backbone = Darknet(num_class=2)
+#     backbone.train()
+#     out = backbone(x)
+#     # backbone.state_dict()
+#     # torch.save(backbone.state_dict(),"xixi_a.pth")
+#     print('x = ',x)
+#     print(out.shape)
+#     output = non_max_suppression(out)
+#     print(output)

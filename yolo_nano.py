@@ -2,13 +2,22 @@
 author: lingteng qiu
 
 '''
+import os
+
+import numpy as np
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import torch
 import torch.nn.functional as F
+import cv2
+
+from DataHandler import DataLoader
+from config import IMAGE_SIZE
 from darknet import YOLOLayer,to_cpu
 
 #ACTIVATE_FUNC
+from utils.utils import xywh2xyxy, bbox_iou, pad_to_square, resize
+
 ACTIVATE={
     "relu":nn.ReLU,
     "relu6":nn.ReLU6,
@@ -248,12 +257,101 @@ class YoloNano(nn.Module):
         yolo_outputs = to_cpu(torch.cat(yolo_outputs, 1))
         return yolo_outputs if targets is None else (loss, yolo_outputs)
 
+def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4,keep_det = 100):
+    """
+    todo Remeber in here, In yolov3 realize we find the result is kept all.
+    todo it is bad in evaluate in early epoch.
+
+    Removes detections with lower object confidence score than 'conf_thres' and performs
+    Non-Maximum Suppression to further filter detections.
+    Returns detections with shape:
+        (x1, y1, x2, y2, object_conf, class_score, class_pred)
+    """
+
+    # From (center x, center y, width, height) to (x1, y1, x2, y2)
+
+
+    prediction[..., :4] = xywh2xyxy(prediction[..., :4])
+    output = [None for _ in range(len(prediction))]
+    for image_i, image_pred in enumerate(prediction):
+        # Filter out confidence scores below threshold
+        image_pred = image_pred[image_pred[:, 4] >= conf_thres]
+        # If none are remaining => process next image
+        if not image_pred.size(0):
+            continue
+        # Object confidence times class confidence
+        # yolo use MAP maximum a posterior
+
+
+        score = image_pred[:, 4] * image_pred[:, 5:].max(1)[0]
+        # Sort by it
+        image_pred = image_pred[(-score).argsort()]
+        class_confs, class_preds = image_pred[:, 5:].max(1, keepdim=True)
+        detections = torch.cat((image_pred[:, :5], class_confs.float(), class_preds.float()), 1)
+        # Perform non-maximum suppression
+        keep_boxes = []
+        while detections.size(0):
+            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            label_match = detections[0, -1] == detections[:, -1]
+            # Indices of boxes with lower confidence scores, large IOUs and matching labels
+            invalid = large_overlap & label_match
+            weights = detections[invalid, 4:5]
+            # Merge overlapping bboxes by order of confidence
+            detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
+            keep_boxes += [detections[0]]
+            detections = detections[~invalid]
+            if len(keep_boxes)>100:
+                break
+        if keep_boxes:
+            output[image_i] = torch.stack(keep_boxes)
+    return output
+
 
 if __name__ == '__main__':
-    x = torch.randn(1,3,416,416)
-    backbone = YoloNano()
-    out = backbone(x)
+    # x = torch.randn(1,3,416,416)
+    imgfolderpath = os.path.dirname(os.path.realpath(__file__)) + "/" + 'wb_localization_dataset' + '/images/train/'
+    labelfolderpath = os.path.dirname(
+        os.path.realpath(__file__)) + "/" + 'wb_localization_dataset' + '/labels/train/'
+
+    dataloader = DataLoader.DataLoader(imgfolderpath, labelfolderpath)
+    train_dataset = dataloader.init_dataset()
+    img = train_dataset[0][0] * 255
+    image_tensor, a = pad_to_square(img, 255)
+    image_tensor = resize(image_tensor, IMAGE_SIZE)
+    image_tensor = image_tensor.unsqueeze(0)
+
+    # data = torch.stack([image_tensor])
+    # image_tensor = torch.randn(1,3,800,800)
+    backbone = YoloNano(num_class=2)
+    backbone.train()
+    out = backbone(image_tensor)
     # backbone.state_dict()
     # torch.save(backbone.state_dict(),"xixi_a.pth")
-    print('x = ',x)
+    # print('x = ',x)
     print(out.shape)
+    output = non_max_suppression(out)[0].int()
+
+    boxes = output[:, :4]
+    boxes = np.array(boxes, dtype=int)
+    # image = np.array(image_tensor[0].permute(1,2,0), dtype='uint8')
+    image = np.array(image_tensor[0].permute(1, 2, 0), dtype='uint8').copy()
+    # cv2.imshow("Img", img_show)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    for i in range(len(boxes)):
+        box = boxes[i]
+        # score = scores[i]
+        # label = labels[i]
+        # mask = masks[i, 0].cpu().numpy()
+        x_start = box[0]
+        y_start = box[1]
+        x_end = box[2]
+        y_end = box[3]
+        cv2.rectangle(image, (x_start, y_start), (x_end, y_end), (0, 255, 0), 2)
+    cv2.imshow("Img", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    # print(output)
+
+
