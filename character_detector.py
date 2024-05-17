@@ -210,7 +210,7 @@ class HanNomOCR:
         """
         self.name = 'HanNomOCR'
         self.noise = noise
-        self.trainer = Trainer()
+        self.trainer = Trainer("best.pt")
         np.random.seed(1)
 
     # def load_model(self, model_path):

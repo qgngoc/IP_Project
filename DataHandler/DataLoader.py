@@ -7,7 +7,6 @@ from torch import tensor
 # from torchvision.tv_tensors import BoundingBoxes, BoundingBoxFormat
 from DataHandler.DataPreprocessor import DataPreprocessor
 
-
 class DataLoader:
 
     def __init__(self,imgfolderpath,labelfolderpath):
@@ -22,10 +21,10 @@ class DataLoader:
             # image_tensor = torch.from_numpy(img).int()
             # img = DataPreprocessor.edge_filtering(img)
             img = DataPreprocessor.read_image(imgfolderpath + imgFilePath)
-            # img = DataPreprocessor.apply_ben_preprocessing(img)
-            # img = DataPreprocessor.apply_denoising(img)
-            image_tensor = self.format_img(img)
-            imgs[imgFilePath[:-4]] = image_tensor
+            img = DataPreprocessor.apply_ben_preprocessing(img)
+            img = DataPreprocessor.apply_denoising(img)
+            # image_tensor = self.format_img(img)
+            imgs[imgFilePath[:-4]] = img
         return imgs
 
     def init_datay(self, labelfolderpath):
@@ -80,7 +79,7 @@ class DataLoader:
         return dataset
 
     def process_datay(self, valuey, valuex):
-        _, img_height, img_width = list(valuex.size())
+        img_height, img_width, _ = list(valuex.shape)
         boxes = valuey[1]
         x_center = boxes[:,0]
         y_center = boxes[:,1]
