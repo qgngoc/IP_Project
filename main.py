@@ -78,11 +78,11 @@ if __name__ == "__main__":
     # input_folder = sys.argv[1]
     # label_folder = sys.argv[2]
 
-    input_folder = BASE_PATH + '/images/val/'
-    label_folder = BASE_PATH + '/labels/val/'
+    input_folder = 'wb_localization_dataset/images/val/'
+    label_folder = 'wb_localization_dataset/labels/val/'
 
     start_time = time.time()
-    detector = HanNomOCR(noise=20)
+    detector = HanNomOCR()
     init_time = time.time() - start_time
     print("Run time in: %.2f s" % init_time)
 

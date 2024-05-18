@@ -204,12 +204,11 @@ def read_label(img, str_output):
 
 class HanNomOCR:
 
-    def __init__(self, model_path=MODEL_PATH, noise=50):
+    def __init__(self):
         """
         You should hard fix all the requirement parameters
         """
         self.name = 'HanNomOCR'
-        self.noise = noise
         self.trainer = Trainer("best.pt")
         np.random.seed(1)
 
@@ -221,20 +220,20 @@ class HanNomOCR:
     #     finetuned_model.eval()
     #     return finetuned_model
 
-    def detect_old(self, img):
-        base_outputs = read_label(img, label_test)
-        noise = np.random.randint(0, self.noise, size=(len(base_outputs), 4)) - (self.noise // 2)
-        preds = []
-
-        for i in range(len(base_outputs)):
-            confidence = np.sum(np.abs(noise[i, :]))
-            confidence = 1 - 1.0*confidence/200
-            preds += [(confidence, base_outputs[i][0] + noise[i][0],
-                              base_outputs[i][1] + noise[i][1],
-                              base_outputs[i][2] + noise[i][2],
-                              base_outputs[i][3] + noise[i][3])]
-        # List of confidence, xcenter, ycenter, width, height
-        return np.array(preds)
+    # def detect_old(self, img):
+    #     base_outputs = read_label(img, label_test)
+    #     noise = np.random.randint(0, self.noise, size=(len(base_outputs), 4)) - (self.noise // 2)
+    #     preds = []
+    #
+    #     for i in range(len(base_outputs)):
+    #         confidence = np.sum(np.abs(noise[i, :]))
+    #         confidence = 1 - 1.0*confidence/200
+    #         preds += [(confidence, base_outputs[i][0] + noise[i][0],
+    #                           base_outputs[i][1] + noise[i][1],
+    #                           base_outputs[i][2] + noise[i][2],
+    #                           base_outputs[i][3] + noise[i][3])]
+    #     # List of confidence, xcenter, ycenter, width, height
+    #     return np.array(preds)
 
     def detect(self, img):
         # base_outputs = read_label(img, label_test)

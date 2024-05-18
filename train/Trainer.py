@@ -36,8 +36,10 @@ class Trainer:
 
     def train(self):
         model = self.model
-
-        model.train(data="hannom.yaml", epochs=3, imgsz=800)
+        # hyp = dict()
+        # hyp['flipud'] = 1
+        # hyp['fliplr'] = 1
+        model.train(data="hannom.yaml", epochs=30, imgsz=900, batch=8, fliplr=1, flipud=1)
 
         path = model.export(format="ONNX")
         print(path)
@@ -58,14 +60,15 @@ class Trainer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def evaluate(self, img, threshold=0.5):
+    def evaluate(self, img, threshold=0.2):
         finetuned_model = self.model
-        result = finetuned_model([img])[0]
+        result = finetuned_model([img], verbose=False)[0]
         preds = []
         for confidence, box in zip(result.boxes.conf, result.boxes.xywh):
-            confidence = confidence.item()
+            # confidence = confidence.item()
             if confidence <= threshold:
                 continue
+            confidence = 1.0
             x_center, y_center, width, height = box
             x_center = int(x_center)
             y_center = int(y_center)
@@ -77,7 +80,7 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    trainer = Trainer()
+    trainer = Trainer('yolov8n.pt')
     # trainer.train()
     BASE_PATH = "/Users/quangngoc0811/Documents/UETFiles/IP/IP_Project/wb_localization_dataset"
     validate_dataset = DataLoader(imgfolderpath=BASE_PATH + '/images/val/',
