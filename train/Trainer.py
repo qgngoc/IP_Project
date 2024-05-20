@@ -39,7 +39,15 @@ class Trainer:
         # hyp = dict()
         # hyp['flipud'] = 1
         # hyp['fliplr'] = 1
-        model.train(data="hannom.yaml", epochs=30, imgsz=900, batch=8, fliplr=1, flipud=1)
+        model.train(data="hannom.yaml", epochs=30,
+                    imgsz=900,
+                    batch=8,
+                    optimizer='RMSProp',   # Adam, AdamW
+                    lr0=0.001,
+                    momentum=0.9
+                    # fliplr=1,
+                    # flipud=1
+                    )
 
         path = model.export(format="ONNX")
         print(path)
@@ -81,7 +89,7 @@ class Trainer:
 
 if __name__ == "__main__":
     trainer = Trainer('yolov8n.pt')
-    # trainer.train()
+    trainer.train()
     BASE_PATH = "/Users/quangngoc0811/Documents/UETFiles/IP/IP_Project/wb_localization_dataset"
     validate_dataset = DataLoader(imgfolderpath=BASE_PATH + '/images/val/',
                                   labelfolderpath=BASE_PATH + '/labels/val/').init_dataset()
